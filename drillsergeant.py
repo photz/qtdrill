@@ -2,7 +2,7 @@ from mutagen.mp3 import MP3
 from mutagen.flac import FLAC
 from mutagen.easyid3 import EasyID3
 import mutagen.id3
-from random import choice
+from random import choice, shuffle
 import logging
 import string
 import subprocess
@@ -41,8 +41,9 @@ class DrillSergeant(object):
 
         self.gui = gui
         self.exercises = exercises
-        self.section = None
-        self.exercise = None
+
+        self.current_section = None
+        self.current_drill = None
 
         # the number of drills we've gone through from the current
         # section successively
@@ -58,65 +59,80 @@ class DrillSergeant(object):
         gui.set_play_teacher_again_callback(self.play_teacher_again)
 
     def uncover(self):
-        if self.exercise and len(self.exercise) > 1:
-            self.gui.set_student(self.exercise[1]['text'])
+        if self.current_drill and len(self.current_drill) > 1:
+            self.gui.set_student(self.current_drill[1]['text'])
             self.play_student_audio()
         else:
             logging.warning('no exercise')
 
+    def _choose_new_section(self):
+        assert not self.current_section
+
+        self.audiofile_path, exercise_set = choice(self.exercises)
+
+        section = choice(exercise_set.values())
+
+        self.current_section = list(section.values())
+
+        shuffle(self.current_section)
+
+    def _current_section_has_drills_left(self):
+        return self.current_section and len(self.current_section) > 0
+
+
+    def _set_next_drill_in_current_section(self):
+        assert self.current_section
+        assert len(self.current_section) > 0
+
+        self.current_drill = self.current_section.pop()
+
     def set_next(self):
 
+        if not self._current_section_has_drills_left():
 
-        if not self.section \
-           or self.section_drill_counter > DrillSergeant.SUCCESSIVE_DRILLS_PER_SECTION:
+            self._choose_new_section()            
 
-            self.audiofile_path, self.exercise_set = \
-                                            choice(self.exercises)
-
-            self.section = choice(self.exercise_set.values())
-            self.section_drill_counter = 0
-
-
-        assert self.section
-        assert self.audiofile_path
-
-        self.exercise = choice(self.section.values())
+        self._set_next_drill_in_current_section()
         
 
-
-        self.gui.set_source('%s <b>%d</b> of <b>%d</b>'
+        self.gui.set_source('%s, %d drills left'
                             % (self.audiofile_path,
-                               self.section_drill_counter,
-                               len(self.section)))
+                               len(self.current_section)))
 
-
-
-        self.play_teacher_audio()
-        self.gui.set_teacher(self.exercise[0]['text'])
 
         self.gui.set_student('')
 
-        self.section_drill_counter += 1
+        self.play_teacher_audio()
+        self.gui.set_teacher(self.current_drill[0]['text'])
+
+
+
 
     def play_teacher_again(self):
-        if self.exercise:
-            self.play_teacher_audio()
-        else:
-            logging.warning('no exercise selected')
+        if not self.current_drill:
+            return
+
+        self.play_teacher_audio()
 
     def play_student_again(self):
-        if self.exercise:
-            self.play_student_audio()
-        else:
-            logging.warning('no exercise selected')
+        if not self.current_drill:
+            return
+
+        self.play_student_audio()
 
 
     def play_teacher_audio(self):
+        if not self.current_drill:
+            raise Exception('no current drill')
+
         play_section(self.audiofile_path,
-                     self.exercise[0]['start_s'],
-                     self.exercise[0]['end_s'] - self.exercise[0]['start_s'])
+                     self.current_drill[0]['start_s'],
+                     self.current_drill[0]['end_s'] - self.current_drill[0]['start_s'])
 
     def play_student_audio(self):
+        if not self.current_drill:
+            raise Exception('no current drill')
+
         play_section(self.audiofile_path,
-                     self.exercise[1]['start_s'],
-                     self.exercise[1]['end_s'] - self.exercise[1]['start_s'])    
+                     self.current_drill[1]['start_s'],
+                     self.current_drill[1]['end_s'] - self.current_drill[1]['start_s'])    
