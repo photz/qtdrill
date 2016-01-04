@@ -61,7 +61,7 @@ class DrillSergeant(object):
     def uncover(self):
         if self.current_drill and len(self.current_drill) > 1:
             self.gui.set_student(self.current_drill[1]['text'])
-            self.play_student_audio()
+            self.play_student_again()
         else:
             logging.warning('no exercise')
 
@@ -93,46 +93,36 @@ class DrillSergeant(object):
             self._choose_new_section()            
 
         self._set_next_drill_in_current_section()
-        
 
         self.gui.set_source('%s, %d drills left'
                             % (self.audiofile_path,
                                len(self.current_section)))
 
-
         self.gui.set_student('')
 
-        self.play_teacher_audio()
+        self.play_teacher_again()
         self.gui.set_teacher(self.current_drill[0]['text'])
-
-
 
 
     def play_teacher_again(self):
         if not self.current_drill:
             return
 
-        self.play_teacher_audio()
+        self._play(self.audiofile_path, self.current_drill[0])
+
+        
 
     def play_student_again(self):
         if not self.current_drill:
             return
 
-        self.play_student_audio()
+        self._play(self.audiofile_path, self.current_drill[1])
 
 
-    def play_teacher_audio(self):
-        if not self.current_drill:
-            raise Exception('no current drill')
+    @staticmethod
+    def _play(audio, drill):
 
-        play_section(self.audiofile_path,
-                     self.current_drill[0]['start_s'],
-                     self.current_drill[0]['end_s'] - self.current_drill[0]['start_s'])
+        play_section(audio,
+                     drill['start_s'],
+                     drill['end_s'] - drill['start_s'])
 
-    def play_student_audio(self):
-        if not self.current_drill:
-            raise Exception('no current drill')
-
-        play_section(self.audiofile_path,
-                     self.current_drill[1]['start_s'],
-                     self.current_drill[1]['end_s'] - self.current_drill[1]['start_s'])    
