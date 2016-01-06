@@ -1,7 +1,3 @@
-from mutagen.mp3 import MP3
-from mutagen.flac import FLAC
-from mutagen.easyid3 import EasyID3
-import mutagen.id3
 from random import choice, shuffle, random
 import logging
 import string
@@ -15,22 +11,22 @@ class DrillDirection(object):
 
 class DrillSergeant(object):
 
-    def __init__(self, gui, exercises):
+    def __init__(self, gui, drill_sections):
 
         self._reverse_likelihood = 0.3
         self._shuffle_drills = True
 
         self.gui = gui
-        self.exercises = exercises
+        self._drill_sections = drill_sections
 
-        self.current_section = None
-        self.current_drill = None
+        self._current_section = None
+        self._drills_queue = None
+        self._current_drill = None
         self._current_direction = None
 
         # the number of drills we've gone through from the current
         # section successively
         # this counter is reset whenever a new section is chosen
-        self.section_drill_counter = 0
 
         gui.set_uncover_callback(self.uncover)
 
@@ -44,15 +40,15 @@ class DrillSergeant(object):
 
     def _get_current_teacher(self):
         if self._current_direction is DrillDirection.normal:
-            return self.current_drill[0]
+            return self._current_drill.get_teacher()
         else:
-            return self.current_drill[1]
+            return self._current_drill.get_student()
 
     def _get_current_student(self):
         if self._current_direction is DrillDirection.normal:
-            return self.current_drill[1]
+            return self._current_drill.get_student()
         else:
-            return self.current_drill[0]
+            return self._current_drill.get_teacher()
 
 
     def skip_remaining(self):
@@ -60,15 +56,13 @@ class DrillSergeant(object):
         self.set_next()
 
     def uncover(self):
-        if self.current_drill and len(self.current_drill) > 1:
-            self.gui.set_student(self._get_current_student()['text'])
+        if self._current_drill:
+            self.gui.set_student(self._get_current_student().get_text())
             self.play_student_again()
         else:
             logging.warning('no exercise')
 
     def _choose_new_section(self):
-
-
 
         assert 0 <= self._reverse_likelihood \
             and self._reverse_likelihood <= 1.0
@@ -79,24 +73,26 @@ class DrillSergeant(object):
         else:
             self._current_direction = DrillDirection.reverse
 
-        self.audiofile_path, exercise_set = choice(self.exercises)
 
-        section = choice(exercise_set.values())
+        self._current_section = choice(self._drill_sections)
 
-        self.current_section = list(section.values())
+        self._drills_queue = list(self._current_section.get_drills())
 
         if self._shuffle_drills:
-            shuffle(self.current_section)
+            shuffle(self._drills_queue)
+
+        if self._current_section.has_example():
+            self._current_section.get_example.play()
 
     def _current_section_has_drills_left(self):
-        return self.current_section and len(self.current_section) > 0
+        return self._drills_queue and len(self._drills_queue) > 0
 
 
     def _set_next_drill_in_current_section(self):
-        assert self.current_section
-        assert len(self.current_section) > 0
+        assert self._drills_queue
+        assert len(self._drills_queue) > 0
 
-        self.current_drill = self.current_section.pop()
+        self._current_drill = self._drills_queue.pop()
 
     def set_next(self):
 
@@ -106,35 +102,23 @@ class DrillSergeant(object):
 
         self._set_next_drill_in_current_section()
 
-        self.gui.set_source('%s, %d drills left'
-                            % (self.audiofile_path,
-                               len(self.current_section)))
+        self.gui.set_source('%d drills left'
+                            % len(self._drills_queue))
 
         self.gui.set_student('')
 
         self.play_teacher_again()
-        self.gui.set_teacher(self._get_current_teacher()['text'])
+        self.gui.set_teacher(self._get_current_teacher().get_text())
 
 
     def play_teacher_again(self):
-        if not self.current_drill:
+        if not self._current_drill:
             return
 
-        self._play(self.audiofile_path, self._get_current_teacher())
-
-        
+        self._get_current_teacher().play()
 
     def play_student_again(self):
-        if not self.current_drill:
+        if not self._current_drill:
             return
 
-        self._play(self.audiofile_path, self._get_current_student())
-
-
-    @staticmethod
-    def _play(audio, drill):
-
-        play_section(audio,
-                     drill['start_s'],
-                     drill['end_s'] - drill['start_s'])
-
+        self._get_current_student().play()

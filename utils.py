@@ -17,7 +17,7 @@ def play_section(path_to_audio_file, start_s, length_s):
         path_to_audio_file
     ]
             
-    logging.debug(string.join(args, ' '))
+    logging.debug(' '.join(args))
 
     with open(os.devnull, 'w') as silent:
         subprocess.call(args, stdout=silent, stderr=silent)
