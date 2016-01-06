@@ -7,6 +7,38 @@ from drill_section import DrillSection
 class CannotParseLineException(Exception):
     pass
 
+
+class Label(object):
+
+    def __init__(self, line):
+        data = self._parse_label_line(line)
+
+        self.start_s = data['start_s']
+        self.end_s = data['end_s']
+        self.drill = data['drill']
+        self.text = data['text']
+        self.section = data['section']
+
+    @staticmethod
+    def _parse_label_line(line):
+
+        regex = re.compile('(?P<start>\d+,\d+)\t(?P<end>\d+,\d+)\t(?P<section>[^;]*);(?P<drill>[^;]*);(?P<text>.*)')
+
+        x = regex.match(line)
+
+        if x == None:
+            raise CannotParseLineException('the line given does not have the right format')
+
+
+        return {
+            'start_s' : LabelledAudiofile._comma_separated_decimal_to_float(x.group('start')),
+            'end_s' : LabelledAudiofile._comma_separated_decimal_to_float(x.group('end')),
+            'section' : x.group('section'),
+            'drill' : x.group('drill'),
+            'text' : x.group('text')
+        }
+
+
         
 
 class LabelledAudiofile(object):
@@ -36,7 +68,7 @@ class LabelledAudiofile(object):
         for line_no, line in enumerate(lines):
 
             try:
-                current = self._parse_label_line(line)
+                current = Label(line)
 
             except CannotParseLineException:
                 logging.info('skipping line %d: %s'
@@ -45,11 +77,11 @@ class LabelledAudiofile(object):
             else:
                     
                 if not current_drill_section or \
-                   current_drill_section.get_name() != current['section']:
+                   current_drill_section.get_name() != current.section:
 
                     
                     current_drill_section = \
-                            DrillSection(current['section'])
+                            DrillSection(current.section)
 
                     self._drill_sections.append(current_drill_section)
 
@@ -62,15 +94,15 @@ class LabelledAudiofile(object):
 
 
 
-                assert previous_line['section'] == current['section']
+                assert previous_line.section == current.section
 
 
-                if previous_line['drill'] != current['drill']:
+                if previous_line.drill != current.drill:
 
-                    example_sentence = Sentence(previous_line['text'],
+                    example_sentence = Sentence(previous_line.text,
                                                 self._audiofile_path,
-                                                previous_line['start_s'],
-                                                previous_line['end_s'])
+                                                previous_line.start_s,
+                                                previous_line.end_s)
 
                     current_drill_section.set_example(example_sentence)
 
@@ -81,18 +113,18 @@ class LabelledAudiofile(object):
 
                     
 
-                if previous_line['section'] == current['section'] \
-                   and previous_line['drill'] == current['drill']:
+                if previous_line.section == current.section \
+                   and previous_line.drill == current.drill:
 
-                    teacher_sentence = Sentence(previous_line['text'],
+                    teacher_sentence = Sentence(previous_line.text,
                                                 self._audiofile_path,
-                                                previous_line['start_s'],
-                                                previous_line['end_s'])
+                                                previous_line.start_s,
+                                                previous_line.end_s)
 
-                    student_sentence = Sentence(current['text'],
+                    student_sentence = Sentence(current.text,
                                                 self._audiofile_path,
-                                                current['start_s'],
-                                                current['end_s'])
+                                                current.start_s,
+                                                current.end_s)
 
                     new_drill = Drill(teacher_sentence,
                                       student_sentence)
@@ -106,24 +138,6 @@ class LabelledAudiofile(object):
         return self._drill_sections
 
 
-    @staticmethod
-    def _parse_label_line(line):
-
-        regex = re.compile('(?P<start>\d+,\d+)\t(?P<end>\d+,\d+)\t(?P<section>[^;]*);(?P<drill>[^;]*);(?P<text>.*)')
-
-        x = regex.match(line)
-
-        if x == None:
-            raise CannotParseLineException('the line given does not have the right format')
-
-
-        return {
-            'start_s' : LabelledAudiofile._comma_separated_decimal_to_float(x.group('start')),
-            'end_s' : LabelledAudiofile._comma_separated_decimal_to_float(x.group('end')),
-            'section' : x.group('section'),
-            'drill' : x.group('drill'),
-            'text' : x.group('text')
-        }
 
 
     @staticmethod
