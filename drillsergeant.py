@@ -3,7 +3,7 @@ import logging
 import string
 import os
 from utils import play_section
-
+from drill_section import DrillSection
 
 class DrillDirection(object):
     normal = 0
@@ -38,6 +38,8 @@ class DrillSergeant(object):
 
         gui.set_skip_remaining_callback(self.skip_remaining)
 
+        self._choose_new_section()
+
     def _get_current_teacher(self):
         if self._current_direction is DrillDirection.normal:
             return self._current_drill.get_teacher()
@@ -64,6 +66,8 @@ class DrillSergeant(object):
 
     def _choose_new_section(self):
 
+        logging.debug('choosing a new section')
+
         assert 0 <= self._reverse_likelihood \
             and self._reverse_likelihood <= 1.0
 
@@ -76,16 +80,18 @@ class DrillSergeant(object):
 
         self._current_section = choice(self._drill_sections)
 
+        assert type(self._current_section) is DrillSection
+
         self._drills_queue = list(self._current_section.get_drills())
 
         if self._shuffle_drills:
             shuffle(self._drills_queue)
 
         if self._current_section.has_example():
-            self._current_section.get_example.play()
+            self._current_section.get_example().play()
 
     def _current_section_has_drills_left(self):
-        return self._drills_queue and len(self._drills_queue) > 0
+        return self._drills_queue != None and len(self._drills_queue) > 0
 
 
     def _set_next_drill_in_current_section(self):
@@ -96,9 +102,12 @@ class DrillSergeant(object):
 
     def set_next(self):
 
+        assert len(self._drill_sections) > 0
+
         if not self._current_section_has_drills_left():
 
-            self._choose_new_section()            
+            self._choose_new_section()
+
 
         self._set_next_drill_in_current_section()
 
