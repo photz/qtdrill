@@ -13,8 +13,9 @@ class DrillSergeant(object):
 
     def __init__(self, gui, drill_sections):
 
-        self._reverse_likelihood = 0.3
+        self._reverse_likelihood = 0.0
         self._shuffle_drills = True
+        self._always_randomize_direction_likelihood = 1.0
 
         self.gui = gui
         self._drill_sections = drill_sections
@@ -23,10 +24,7 @@ class DrillSergeant(object):
         self._drills_queue = None
         self._current_drill = None
         self._current_direction = None
-
-        # the number of drills we've gone through from the current
-        # section successively
-        # this counter is reset whenever a new section is chosen
+        self._always_randomize_direction = None
 
         gui.set_uncover_callback(self.uncover)
 
@@ -38,15 +36,39 @@ class DrillSergeant(object):
 
         gui.set_skip_remaining_callback(self.skip_remaining)
 
+        gui.set_extend_callback(self.extend)
+
         self._choose_new_section()
 
+    def extend(self):
+        assert self._current_section
+
+        more_drills = list(self._current_section.get_drills())
+
+        if self._shuffle_drills:
+            shuffle(more_drills)
+
+        self._drills_queue.extend(more_drills)
+
+        self.gui.set_source('%d drills left'
+                            % len(self._drills_queue))
+
+
+
     def _get_current_teacher(self):
+        assert self._current_direction is DrillDirection.normal \
+            or self._current_direction is DrillDirection.reverse
+
         if self._current_direction is DrillDirection.normal:
             return self._current_drill.get_teacher()
         else:
             return self._current_drill.get_student()
 
+
     def _get_current_student(self):
+        assert self._current_direction is DrillDirection.normal \
+            or self._current_direction is DrillDirection.reverse
+
         if self._current_direction is DrillDirection.normal:
             return self._current_drill.get_student()
         else:
@@ -77,6 +99,8 @@ class DrillSergeant(object):
         else:
             self._current_direction = DrillDirection.reverse
 
+            self._always_randomize_direction = \
+                random() <= self._always_randomize_direction_likelihood
 
         self._current_section = choice(self._drill_sections)
 
@@ -98,7 +122,15 @@ class DrillSergeant(object):
         assert self._drills_queue
         assert len(self._drills_queue) > 0
 
-        self._current_drill = self._drills_queue.pop()
+        if self._always_randomize_direction:
+            # use a constant here rather than the magical number TODO
+            if 0.5 < random():
+                self._current_direction = DrillDirection.normal
+            else:
+                self._current_direction = DrillDirection.reverse
+            
+
+        self._current_drill = self._drills_queue.pop(0)
 
     def set_next(self):
 

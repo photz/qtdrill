@@ -58,26 +58,33 @@ class Gui(QtGui.QWidget):
                      QtCore.SIGNAL('activated()'),
                      cb)
 
+    def set_extend_callback(self, cb):
+        self.extend_btn.clicked.connect(cb)
+
+        self.connect(self.extend_btn_sc,
+                     QtCore.SIGNAL('activated()'),
+                     cb)
+
 
     def initUI(self):
         grid = QtGui.QGridLayout(self)
 
 
         self.source_label = QtGui.QLabel('')
-        grid.addWidget(self.source_label, 0, 0, 1, 5)
+        grid.addWidget(self.source_label, 0, 0, 1, 6)
         
 
         self.teacher_label = QtGui.QTextEdit()
         self.teacher_label.setAlignment(QtCore.Qt.AlignCenter)
 
 
-        grid.addWidget(self.teacher_label, 1, 0, 1, 5)
+        grid.addWidget(self.teacher_label, 1, 0, 1, 6)
 
 
         self.student_label = QtGui.QTextEdit()
         self.student_label.setAlignment(QtCore.Qt.AlignCenter)
 
-        grid.addWidget(self.student_label, 2, 0, 1, 5)
+        grid.addWidget(self.student_label, 2, 0, 1, 6)
 
 
         self.uncover_btn = QtGui.QPushButton('uncover')
@@ -120,6 +127,13 @@ class Gui(QtGui.QWidget):
         grid.addWidget(self.skip_remaining_btn, 3, 4)
         self.skip_remaining_sc = QtGui.QShortcut(self.skip_remaining_btn)
         self.skip_remaining_sc.setKey('Z')
+
+        # extend
+
+        self.extend_btn = QtGui.QPushButton('extend')
+        grid.addWidget(self.extend_btn, 3, 5)
+        self.extend_btn_sc = QtGui.QShortcut(self.extend_btn)
+        self.extend_btn_sc.setKey('E')
 
         # window
 

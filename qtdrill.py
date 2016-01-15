@@ -14,7 +14,7 @@ import string
 import os
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def main():
@@ -64,9 +64,13 @@ def main():
 
         af = LabelledAudiofile(audiofile_path)
 
-        af.parse()
-
-        drill_sections.extend(af.get_drill_sections())
+        try:
+            af.parse()
+        except Exception as e:
+            logging.error('could not parse %s' % audiofile_path)
+            raise e
+        else:
+            drill_sections.extend(af.get_drill_sections())
         
     logging.info('a total of %d drill section have been found'
                  % len(drill_sections))

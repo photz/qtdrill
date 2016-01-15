@@ -13,16 +13,10 @@ class Label(object):
     regex = re.compile('(?P<start>\d+,\d+)\t(?P<end>\d+,\d+)\t(?P<section>[^;]*);(?P<drill>[^;]*);(?P<text>.*)')
 
     def __init__(self, line):
-        data = self._parse_label_line(line)
+        self._parse_label_line(line)
 
-        self.start_s = data['start_s']
-        self.end_s = data['end_s']
-        self.drill = data['drill']
-        self.text = data['text']
-        self.section = data['section']
 
-    @staticmethod
-    def _parse_label_line(line):
+    def _parse_label_line(self, line):
 
         x = Label.regex.match(line)
 
@@ -30,13 +24,21 @@ class Label(object):
             raise CannotParseLineException('the line given does not have the right format')
 
 
-        return {
-            'start_s' : LabelledAudiofile._comma_separated_decimal_to_float(x.group('start')),
-            'end_s' : LabelledAudiofile._comma_separated_decimal_to_float(x.group('end')),
-            'section' : x.group('section'),
-            'drill' : x.group('drill'),
-            'text' : x.group('text')
-        }
+        self.start_s = self._comma_separated_decimal_to_float(x.group('start'))
+        self.end_s = self._comma_separated_decimal_to_float(x.group('end'))
+        self.section = x.group('section')
+        self.drill = x.group('drill')
+        self.text = x.group('text')
+
+    @staticmethod
+    def _comma_separated_decimal_to_float(comma_separated_decimal,
+                                          delimiter=','):
+
+        if comma_separated_decimal.count(delimiter) != 1:
+            raise Exception('improper format')
+
+        return float(comma_separated_decimal.replace(delimiter, '.'))
+
 
     def __str__(self):
         return '<section:%s|drill:%s|text:%s>' \
@@ -80,9 +82,6 @@ class LabelledAudiofile(object):
                     pass
                 else:
                     yield label
-
-                
-
 
     def parse(self):
 
@@ -133,17 +132,19 @@ class LabelledAudiofile(object):
                                         previous_line.start_s,
                                         previous_line.end_s)
 
+            previous_line = None
+
             student_sentence = Sentence(current.text,
-                                                self._audiofile_path,
-                                                current.start_s,
-                                                current.end_s)
+                                        self._audiofile_path,
+                                        current.start_s,
+                                        current.end_s)
 
             new_drill = Drill(teacher_sentence,
-                                      student_sentence)
+                              student_sentence)
 
             current_drill_section.add_drill(new_drill)
 
-            previous_line = None
+
 
                 
 
@@ -161,11 +162,3 @@ class LabelledAudiofile(object):
 
         return _path + '.' + expected_labelfile_extension
 
-    @staticmethod
-    def _comma_separated_decimal_to_float(comma_separated_decimal,
-                                          delimiter=','):
-
-        if comma_separated_decimal.count(delimiter) != 1:
-            raise Exception('improper format')
-
-        return float(comma_separated_decimal.replace(delimiter, '.'))
