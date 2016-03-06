@@ -5,11 +5,32 @@ import os
 from utils import play_section
 from drill_section import DrillSection
 
+class DrillMode(object):
+    def __init__(self):
+        pass
+
+    def extend(self):
+        raise NotImplemented()
+
+    def skip_remaining(self):
+        raise NotImplemented()
+
+    def get_student(self):
+        raise NotImplemented()
+
+    def get_teacher(self):
+        raise NotImplemented()
+
+    def get_next(self):
+        raise NotImplemented()
+
+
+
 class DrillDirection(object):
     normal = 0
     reverse = 1
 
-class PlainMode(object):
+class PlainMode(DrillMode):
 
     options = ['reverse_likelihood',
                'shuffle',
@@ -129,13 +150,13 @@ class PlainMode(object):
 
 
 
-class ReverseMode(object):
+class ReverseMode(DrillMode):
     pass
 
-class MixedMode(object):
+class MixedMode(DrillMode):
     pass
 
-class SnowballMode(object):
+class SnowballMode(DrillMode):
 
     def __init__(self, drill_sergeant):
 
