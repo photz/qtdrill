@@ -1,3 +1,4 @@
+import subprocess
 from utils import play_section
 from os import path
 
@@ -15,6 +16,7 @@ class Sentence(object):
         self._audiofile_path = audiofile_path
         self._start = start
         self._length = end - start
+        self._end = end
 
     def get_text(self):
         return self._text
@@ -23,3 +25,16 @@ class Sentence(object):
         play_section(self._audiofile_path,
                      self._start,
                      self._length)
+
+
+    def export(self, dest):
+        cmd = [
+            'sox',
+            self._audiofile_path,
+            dest,
+            'trim',
+            '{}'.format(self._start),
+            '={}'.format(self._end)
+        ]
+
+        subprocess.call(cmd)
