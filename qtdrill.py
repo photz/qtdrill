@@ -4,8 +4,11 @@ import sys
 from PyQt4 import QtGui
 
 from labelled_audiofile import LabelledAudiofile
+from yamlfile import YamlFile
 from drillsergeant import DrillSergeant
 from gui import Gui
+
+
 
 import codecs
 import argparse
@@ -60,9 +63,22 @@ def main():
 
     drill_sections = list()
 
+    handlers = {
+        '.flac' : LabelledAudiofile,
+        '.mp3' : LabelledAudiofile,
+        '.wav' : LabelledAudiofile,
+        '.yaml' : YamlFile
+    }
+
     for audiofile_path in args.audiofiles:
 
-        af = LabelledAudiofile(audiofile_path)
+        _, ext = os.path.splitext(audiofile_path)
+
+        if ext not in handlers:
+            logging.error('no handler for {}.'.format(ext))
+            raise Exception('unknown file extension {}'.format(ext))
+
+        af = handlers[ext](audiofile_path)
 
         try:
             af.parse()
