@@ -121,8 +121,6 @@ class PlainMode(DrillMode):
         self._current_section = \
             choice(self._drill_sergeant._drill_sections)
 
-        assert type(self._current_section) is DrillSection
-
         self._drills_queue = list(self._current_section.get_drills())
 
         if self._shuffle_drills:
