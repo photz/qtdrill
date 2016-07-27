@@ -40,6 +40,7 @@ class Label(object):
         return float(comma_separated_decimal.replace(delimiter, '.'))
 
 
+
     def __str__(self):
         return '<section:%s|drill:%s|text:%s>' \
             % (self.section, self.drill, self.text)
@@ -70,11 +71,7 @@ class LabelledAudiofile(object):
         
         with open(labelfile_path) as f:
 
-            while True:
-                
-                line = f.readline()
-
-                if line == '': return
+            for number, line in enumerate(f):
 
                 try:
                     label = Label(line)
