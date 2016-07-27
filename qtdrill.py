@@ -7,7 +7,7 @@ from labelled_audiofile import LabelledAudiofile
 from yamlfile import YamlFile
 from drillsergeant import DrillSergeant
 from gui import Gui
-
+from simplelabelfile import SimpleLabelFile
 
 
 import codecs
@@ -63,10 +63,12 @@ def main():
 
     drill_sections = list()
 
+    label_file_type = SimpleLabelFile
+
     handlers = {
-        '.flac' : LabelledAudiofile,
-        '.mp3' : LabelledAudiofile,
-        '.wav' : LabelledAudiofile,
+        '.flac' : label_file_type,
+        '.mp3' : label_file_type,
+        '.wav' : label_file_type,
         '.yaml' : YamlFile
     }
 
