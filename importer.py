@@ -148,7 +148,7 @@ def main():
 
             db.commit()
 
-            break
+
 
 if '__main__' == __name__:
     main()
