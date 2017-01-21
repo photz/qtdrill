@@ -51,6 +51,7 @@ def get_args():
 
 
 def insert_drill_section(db, language, name, description, user):
+
     cursor = db.cursor()
 
     q = '''
@@ -94,6 +95,8 @@ def main():
 
     db = sqlite3.connect(args.sqlite3,
                          detect_types=sqlite3.PARSE_DECLTYPES)
+
+    db.text_factory = lambda x: unicode(x, 'utf-8', 'ignore')
 
 
     # tell sqlite to enforce foreign key constraints
