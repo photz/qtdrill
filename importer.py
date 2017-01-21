@@ -16,7 +16,7 @@ def get_args():
     arg_parser = argparse.ArgumentParser()
 
     arg_parser.add_argument('language',
-                            choices=['kr', 'en', 'zh'])
+                            choices=['kr', 'en', 'zh', 'jp'])
 
     arg_parser.add_argument('user',
                             type=str,
