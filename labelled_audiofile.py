@@ -10,7 +10,7 @@ class CannotParseLineException(Exception):
 
 class Label(object):
 
-    regex = re.compile('(?P<start>\d+,\d+)\t(?P<end>\d+,\d+)\t(?P<section>[^;]*);(?P<drill>[^;]*);(?P<text>.*)')
+    regex = re.compile('(?P<start>\d+[\.,]\d+)\t(?P<end>\d+[,\.]\d+)\t(?P<section>[^;]*);(?P<drill>[^;]*);(?P<text>.*)')
 
     def __init__(self, line):
         self._parse_label_line(line)
@@ -34,8 +34,8 @@ class Label(object):
     def _comma_separated_decimal_to_float(comma_separated_decimal,
                                           delimiter=','):
 
-        if comma_separated_decimal.count(delimiter) != 1:
-            raise Exception('improper format')
+        #if comma_separated_decimal.count(delimiter) != 1:
+        #raise Exception('improper format')
 
         return float(comma_separated_decimal.replace(delimiter, '.'))
 

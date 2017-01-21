@@ -68,8 +68,8 @@ class SimpleLabelFile(object):
     def _comma_separated_decimal_to_float(comma_separated_decimal,
                                           delimiter=','):
 
-        if comma_separated_decimal.count(delimiter) != 1:
-            raise Exception('improper format')
+        #if comma_separated_decimal.count(delimiter) != 1:
+        #raise Exception('improper format')
 
         return float(comma_separated_decimal.replace(delimiter, '.'))
 
@@ -77,7 +77,7 @@ class SimpleLabelFile(object):
 
     def _label_to_drill(self, line):
 
-        regex = re.compile('(?P<start>\d+,\d+)\t(?P<end>\d+,\d+)\t(?P<teacher>[^;]*);(?P<student>.*)')
+        regex = re.compile('(?P<start>\d+[\.,]\d+)\t(?P<end>\d+[\.,]\d+)\t(?P<teacher>[^;]*);(?P<student>.*)')
 
         x = regex.match(line)
 
