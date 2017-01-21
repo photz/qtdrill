@@ -88,6 +88,49 @@ def random_string():
     return ''.join(random.choice(
         'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + '0123456789') for _ in range(32))
 
+
+def import_drill_section(db, drill_section, args):
+
+    drill_section_id = insert_drill_section(db,
+                                            args.language,
+                                            drill_section.get_name(),
+                                            '',
+                                            args.user)
+
+    logging.info('created new drill section with id {}'.format(drill_section_id))
+
+    for drill in drill_section.get_drills():
+
+        #print(drill.get_teacher().get_text(), 
+        #drill.get_student().get_text())
+
+        teacher_audio_name = random_string()
+        student_audio_name = random_string()
+
+        teacher_audio_path = os.path.join(args.target_dir,
+                                          teacher_audio_name + '.OGG')
+
+        student_audio_path = os.path.join(args.target_dir,
+                                          student_audio_name + '.OGG')            
+
+        logging.info('exporting teacher audio file to {}'.format(teacher_audio_path))
+
+        logging.info('exporting student audio file to {}'.format(student_audio_path))
+
+        drill.get_teacher().export(teacher_audio_path)
+
+        drill.get_student().export(student_audio_path)
+
+        insert_drill(db, drill_section_id,
+                     drill.get_teacher().get_text(),
+                     teacher_audio_name,
+                     drill.get_student().get_text(),
+                     student_audio_name)
+
+        db.commit()
+    
+
+
 def main():
 
 
@@ -110,44 +153,7 @@ def main():
 
         for drill_section in labelled_audiofile.get_drill_sections():
 
-            drill_section_id = insert_drill_section(db,
-                                                    args.language,
-                                                    drill_section.get_name(),
-                                                    '',
-                                                    args.user)
-
-            logging.info('created new drill section with id {}'.format(drill_section_id))
-
-            for drill in drill_section.get_drills():
-
-                #print(drill.get_teacher().get_text(), 
-                #drill.get_student().get_text())
-
-                teacher_audio_name = random_string()
-                student_audio_name = random_string()
-
-                teacher_audio_path = os.path.join(args.target_dir,
-                                                  teacher_audio_name + '.OGG')
-
-                student_audio_path = os.path.join(args.target_dir,
-                                                  student_audio_name + '.OGG')            
-
-                logging.info('exporting teacher audio file to {}'.format(teacher_audio_path))
-
-                logging.info('exporting student audio file to {}'.format(student_audio_path))
-
-                drill.get_teacher().export(teacher_audio_path)
-
-                drill.get_student().export(student_audio_path)
-
-                insert_drill(db, drill_section_id,
-                             drill.get_teacher().get_text(),
-                             teacher_audio_name,
-                             drill.get_student().get_text(),
-                             student_audio_name)
-
-            db.commit()
-
+            import_drill_section(db, drill_section, args)
 
 
 if '__main__' == __name__:
