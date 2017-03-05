@@ -18,9 +18,7 @@ import os
 
 
 logging.basicConfig(level=logging.DEBUG)
-
-
-def main():
+def get_args():
 
     arg_parser = argparse.ArgumentParser(description=u'')
 
@@ -60,6 +58,13 @@ def main():
     except Exception as x:
         print('incorrect arguments')
         return
+
+    return args
+
+
+
+def main():
+    args = get_args()
 
     drill_sections = list()
 
