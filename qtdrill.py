@@ -18,9 +18,15 @@ import os
 
 
 logging.basicConfig(level=logging.DEBUG)
-def get_args():
+
+
+def get_args(input_type_choices):
 
     arg_parser = argparse.ArgumentParser(description=u'')
+
+    arg_parser.add_argument('type',
+                            type=str,
+                            choices=input_type_choices)
 
     arg_parser.add_argument('audiofiles',
                             type=str,
@@ -38,11 +44,21 @@ def get_args():
 
 
 def main():
-    args = get_args()
+    input_file_types = {
+        'simple' : SimpleLabelFile,
+        'drills' : LabelledAudiofile
+    }
 
-    drill_sections = list()
+    args = get_args(input_file_types.keys())
 
-    label_file_type = SimpleLabelFile
+    label_file_type = None
+
+    if args.type == 'simple':
+        label_file_type = SimpleLabelFile
+    elif args.type == 'drills':
+        label_file_type = LabelledAudiofile
+    else:
+        raise Exception('unknown input file type {}'.format(args.type))
 
     handlers = {
         '.flac' : label_file_type,
@@ -50,6 +66,8 @@ def main():
         '.wav' : label_file_type,
         '.yaml' : YamlFile
     }
+
+    drill_sections = list()
 
     for audiofile_path in args.audiofiles:
 
