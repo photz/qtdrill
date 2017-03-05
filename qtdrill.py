@@ -27,32 +27,6 @@ def get_args():
                             help='path to the audio file',
                             nargs='+')
 
-    arg_parser.add_argument('--gui',
-                            type=bool,
-                            default=False)
-
-    arg_parser.add_argument('--wait',
-                            type=float,
-                            help='length of the interval (in seconds) \
-                            during which the student is expected \
-                            to respond',
-                            default=5)
-
-    arg_parser.add_argument('--reps',
-                            type=int,
-                            help='repetitions of the correct answer',
-                            default=2)
-
-    arg_parser.add_argument('--html',
-                            type=str,
-                            help='only export to html and quit')
-
-    arg_parser.add_argument('--wait-after-answer',
-                            type=float,
-                            help='time to wait (in seconds) after \
-                            the correct answer is given',
-                            default=1.0)
-
     try:
         args = arg_parser.parse_args()
     except Exception as x:
